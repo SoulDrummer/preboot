@@ -8,7 +8,6 @@ logs
 
 package-lock.json
 
-dist/
 node_modules/
 out-tsc/
 debug.log

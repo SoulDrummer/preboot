@@ -37,6 +37,7 @@ export interface PrebootEvent {
   nodeKey?: any;
   event: DomEvent;
   name: string;
+  interval?: number;
 }
 
 // an actual DOM event object

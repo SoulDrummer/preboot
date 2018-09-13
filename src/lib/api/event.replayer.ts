@@ -79,7 +79,24 @@ export class EventReplayer {
       const events = appData.events || [];
 
       // replay all the events from the server view onto the client view
-      events.forEach(event => this.replayEvent(appData, event));
+      // events.forEach(event => this.replayEvent(appData, event));
+      const nEvents: PrebootEvent[] = events.slice(0);
+      let i = 0;
+      const replayEventByInterval = (event: PrebootEvent, interval: number) => {
+        setTimeout(() => {
+          i += 1;
+          this.replayEvent(appData, event);
+          if (nEvents[i]) {
+            return replayEventByInterval(nEvents[i], nEvents[i].interval || 0);
+          } else {
+            appData.events.length = 0;
+            return ;
+          }
+        }, interval);
+      };
+      if (nEvents.length > 0) {
+        replayEventByInterval(nEvents[i], nEvents[i].interval || 0);
+      }
     } catch (ex) {
       console.error(ex);
     }
