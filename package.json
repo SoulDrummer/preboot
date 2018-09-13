@@ -43,7 +43,7 @@
     "@types/express": "^4.11.1",
     "@types/jasmine": "^2.8.7",
     "@types/minimatch": "^3.0.3",
-    "@types/node": "^8.10.14",
+    "@types/node": "^10.9.4",
     "@types/uglify-js": "^2.6.31",
     "ajv": "^5.5.2",
     "camelcase": "^4.1.0",

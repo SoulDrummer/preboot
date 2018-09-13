@@ -255,9 +255,9 @@
       "dev": true
     },
     "@types/node": {
-      "version": "8.10.14",
-      "resolved": "https://registry.npmjs.org/@types/node/-/node-8.10.14.tgz",
-      "integrity": "sha512-TKQqQIaYNO+8MrOsFgobkt3fbMzkfXhBFKcg20Nip5Omptw1HOY/IEvYiFtMwIbr7Me/Y2H/JO+TgNUMJ9NGjA==",
+      "version": "10.9.4",
+      "resolved": "http://registry.npm.taobao.org/@types/node/download/@types/node-10.9.4.tgz",
+      "integrity": "sha1-D0yy3Hwd5glgVTV/cBeQQ8M+mJc=",
       "dev": true
     },
     "@types/q": {
