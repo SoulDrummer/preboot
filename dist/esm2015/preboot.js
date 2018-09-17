@@ -416,7 +416,7 @@ function start(prebootData, win) {
         console.error('Preboot initialization failed, the script is detached');
         return;
     }
-    serverNode.removeChild(_document.currentScript);
+    // serverNode.removeChild(_document.currentScript);
     const /** @type {?} */ opts = prebootData.opts || (/** @type {?} */ ({}));
     let /** @type {?} */ eventSelectors = opts.eventSelectors || [];
     // get the root info
