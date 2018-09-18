@@ -129,26 +129,28 @@ class EventReplayer {
         // try catch around events b/c even if error occurs, we still move forward
         try {
             const /** @type {?} */ events = appData.events || [];
+            return new Promise((resolve) => {
+                const /** @type {?} */ nEvents = events.slice(0);
+                let /** @type {?} */ i = 0;
+                const /** @type {?} */ replayEventByInterval = (event, interval) => {
+                    setTimeout(() => {
+                        i += 1;
+                        this.replayEvent(appData, event);
+                        if (nEvents[i]) {
+                            return replayEventByInterval(nEvents[i], nEvents[i].interval || 0);
+                        }
+                        else {
+                            appData.events.length = 0;
+                            return resolve();
+                        }
+                    }, interval);
+                };
+                if (nEvents.length > 0) {
+                    replayEventByInterval(nEvents[i], nEvents[i].interval || 0);
+                }
+            });
             // replay all the events from the server view onto the client view
             // events.forEach(event => this.replayEvent(appData, event));
-            const /** @type {?} */ nEvents = events.slice(0);
-            let /** @type {?} */ i = 0;
-            const /** @type {?} */ replayEventByInterval = (event, interval) => {
-                setTimeout(() => {
-                    i += 1;
-                    this.replayEvent(appData, event);
-                    if (nEvents[i]) {
-                        return replayEventByInterval(nEvents[i], nEvents[i].interval || 0);
-                    }
-                    else {
-                        appData.events.length = 0;
-                        return;
-                    }
-                }, interval);
-            };
-            if (nEvents.length > 0) {
-                replayEventByInterval(nEvents[i], nEvents[i].interval || 0);
-            }
         }
         catch (/** @type {?} */ ex) {
             console.error(ex);

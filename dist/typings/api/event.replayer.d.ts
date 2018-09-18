@@ -32,7 +32,7 @@ export declare class EventReplayer {
      * Replay all events for one app (most of the time there is just one app)
      * @param appData
      */
-    replayForApp(appData: PrebootAppData): void;
+    replayForApp(appData: PrebootAppData): Promise<{}> | undefined;
     /**
      * Replay one particular event
      * @param appData

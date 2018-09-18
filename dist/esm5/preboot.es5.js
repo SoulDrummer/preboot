@@ -167,27 +167,29 @@ var EventReplayer = /** @class */ (function () {
         appData = /** @type {?} */ ((appData || {}));
         // try catch around events b/c even if error occurs, we still move forward
         try {
-            var /** @type {?} */ events = appData.events || [];
+            var /** @type {?} */ events_1 = appData.events || [];
+            return new Promise(function (resolve) {
+                var /** @type {?} */ nEvents = events_1.slice(0);
+                var /** @type {?} */ i = 0;
+                var /** @type {?} */ replayEventByInterval = function (event, interval) {
+                    setTimeout(function () {
+                        i += 1;
+                        _this.replayEvent(appData, event);
+                        if (nEvents[i]) {
+                            return replayEventByInterval(nEvents[i], nEvents[i].interval || 0);
+                        }
+                        else {
+                            appData.events.length = 0;
+                            return resolve();
+                        }
+                    }, interval);
+                };
+                if (nEvents.length > 0) {
+                    replayEventByInterval(nEvents[i], nEvents[i].interval || 0);
+                }
+            });
             // replay all the events from the server view onto the client view
             // events.forEach(event => this.replayEvent(appData, event));
-            var /** @type {?} */ nEvents_1 = events.slice(0);
-            var /** @type {?} */ i_1 = 0;
-            var /** @type {?} */ replayEventByInterval_1 = function (event, interval) {
-                setTimeout(function () {
-                    i_1 += 1;
-                    _this.replayEvent(appData, event);
-                    if (nEvents_1[i_1]) {
-                        return replayEventByInterval_1(nEvents_1[i_1], nEvents_1[i_1].interval || 0);
-                    }
-                    else {
-                        appData.events.length = 0;
-                        return;
-                    }
-                }, interval);
-            };
-            if (nEvents_1.length > 0) {
-                replayEventByInterval_1(nEvents_1[i_1], nEvents_1[i_1].interval || 0);
-            }
         }
         catch (/** @type {?} */ ex) {
             console.error(ex);
