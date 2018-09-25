@@ -136,12 +136,16 @@ export class EventReplayer {
     // now dispatch events and whatnot to the client node
     (clientNode as HTMLInputElement).checked = serverNode.checked;
     (clientNode as HTMLOptionElement).selected = serverNode.selected;
-    if (prebootEvent.value !== undefined) {
-      (clientNode as HTMLInputElement).value = prebootEvent.value;
-    } else {
-      (clientNode as HTMLOptionElement).value = serverNode.value;
-    }
+    const setValue = () => {
+      if (clientNode instanceof HTMLTextAreaElement || clientNode instanceof HTMLInputElement) {
+        (clientNode as HTMLInputElement).value = prebootEvent.value!;
+      } else {
+        (clientNode as HTMLElement).innerText = prebootEvent.value!;
+      }
+    };
+    if (event.type === 'keydown') { setValue(); }
     clientNode.dispatchEvent(event);
+    if (event.type === 'keyup') { setValue(); }
   }
 
   /**

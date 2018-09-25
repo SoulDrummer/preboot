@@ -18,6 +18,7 @@ import { isPlatformBrowser } from '@angular/common';
       <option id="myVal">foo</option>
       <option>moo</option>
     </select>
+    <div contenteditable="true" style="width: 100px; height: 20px; background: 'gray'"></div>
   `,
 })
 export class AppComponent {
@@ -33,7 +34,15 @@ export class AppComponent {
   declarations: [AppComponent],
   imports: [
     BrowserModule.withServerTransition({ appId: 'foo' }),
-    PrebootModule.withConfig({ appRoot: 'app-root' })
+    PrebootModule.withConfig({
+      appRoot: 'app-root', eventSelectors: [
+        {
+          selector: 'input,textarea,div',
+          events: ['keypress', 'keyup', 'keydown', 'input', 'change']
+        },
+        { selector: 'select,option', events: ['change'] },
+      ]
+    })
   ],
   bootstrap: [AppComponent]
 })

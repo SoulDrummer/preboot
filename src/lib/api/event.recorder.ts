@@ -279,16 +279,29 @@ export function createListenHandler(
     // we will record events for later replay unless explicitly marked as
     // doNotReplay
     if (eventSelector.replay) {
-      const ev: any = {
+      const events = appData.events;
+      const getValue = (preEvent) => {
+        const ev = preEvent.event;
+        if (ev.target instanceof HTMLTextAreaElement || ev.target instanceof HTMLInputElement) {
+          preEvent.value = (ev.target as HTMLInputElement).value;
+        } else {
+          preEvent.value = ev.target.innerText;
+        }
+      };
+      const last = events.length > 0 && events[events.length - 1];
+      if (last && last.event.type === 'keyup') {
+        getValue(last);
+      }
+      const pev = {
         node,
         nodeKey,
         event,
         name: eventName
       };
+      events.push(pev);
       if (eventName === 'keydown') {
-        ev.value = (node as HTMLInputElement).value;
+        getValue(pev);
       }
-      appData.events.push(ev);
     }
   };
 }

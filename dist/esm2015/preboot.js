@@ -184,13 +184,21 @@ class EventReplayer {
         // now dispatch events and whatnot to the client node
         (/** @type {?} */ (clientNode)).checked = serverNode.checked;
         (/** @type {?} */ (clientNode)).selected = serverNode.selected;
-        if (prebootEvent.value !== undefined) {
-            (/** @type {?} */ (clientNode)).value = prebootEvent.value;
-        }
-        else {
-            (/** @type {?} */ (clientNode)).value = serverNode.value;
+        const /** @type {?} */ setValue = () => {
+            if (clientNode instanceof HTMLTextAreaElement || clientNode instanceof HTMLInputElement) {
+                (/** @type {?} */ (clientNode)).value = /** @type {?} */ ((prebootEvent.value));
+            }
+            else {
+                (/** @type {?} */ (clientNode)).innerText = /** @type {?} */ ((prebootEvent.value));
+            }
+        };
+        if (event.type === 'keydown') {
+            setValue();
         }
         clientNode.dispatchEvent(event);
+        if (event.type === 'keyup') {
+            setValue();
+        }
     }
     /**
      * Switch the buffer for one particular app (i.e. display the client
@@ -589,16 +597,30 @@ function createListenHandler(_document, prebootData, eventSelector, appData) {
         // we will record events for later replay unless explicitly marked as
         // doNotReplay
         if (eventSelector.replay) {
-            const /** @type {?} */ ev = {
+            const /** @type {?} */ events = appData.events;
+            const /** @type {?} */ getValue = (preEvent) => {
+                const /** @type {?} */ ev = preEvent.event;
+                if (ev.target instanceof HTMLTextAreaElement || ev.target instanceof HTMLInputElement) {
+                    preEvent.value = (/** @type {?} */ (ev.target)).value;
+                }
+                else {
+                    preEvent.value = ev.target.innerText;
+                }
+            };
+            const /** @type {?} */ last = events.length > 0 && events[events.length - 1];
+            if (last && last.event.type === 'keyup') {
+                getValue(last);
+            }
+            const /** @type {?} */ pev = {
                 node,
                 nodeKey,
                 event,
                 name: eventName
             };
+            events.push(pev);
             if (eventName === 'keydown') {
-                ev.value = (/** @type {?} */ (node)).value;
+                getValue(pev);
             }
-            appData.events.push(ev);
         }
     };
 }
