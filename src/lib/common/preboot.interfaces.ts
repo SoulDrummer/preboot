@@ -38,6 +38,7 @@ export interface PrebootEvent {
   event: DomEvent;
   name: string;
   interval?: number;
+  value?: string;
 }
 
 // an actual DOM event object

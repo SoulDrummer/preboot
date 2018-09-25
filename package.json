@@ -49,6 +49,7 @@
     "camelcase": "^4.1.0",
     "concurrently": "^3.5.1",
     "express": "^4.16.3",
+    "fsevents": "1.2.4",
     "glob": "^7.1.2",
     "http-server": "^0.10.0",
     "jasmine": "^2.99.0",

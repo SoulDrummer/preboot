@@ -1,11 +1,11 @@
 import 'reflect-metadata';
 import 'zone.js';
 
-import {Component, Inject, NgModule, PLATFORM_ID} from '@angular/core';
+import { Component, Inject, NgModule, PLATFORM_ID } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { PrebootModule } from 'preboot';
-import {ServerModule} from '@angular/platform-server';
-import {isPlatformBrowser} from '@angular/common';
+import { ServerModule } from '@angular/platform-server';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-root',
@@ -24,7 +24,7 @@ export class AppComponent {
 
   platform: string;
 
-  constructor( @Inject(PLATFORM_ID) public _platform: string) {
+  constructor(@Inject(PLATFORM_ID) public _platform: string) {
     this.platform = isPlatformBrowser(_platform) ? 'client view' : 'server view';
   }
 }

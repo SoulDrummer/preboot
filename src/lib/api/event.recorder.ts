@@ -15,7 +15,7 @@ import {
   ServerClientRoot,
   PrebootSelection, PrebootSelectionDirection,
 } from '../common/preboot.interfaces';
-import {getNodeKeyForPreboot} from '../common/get-node-key';
+import { getNodeKeyForPreboot } from '../common/get-node-key';
 
 /**
  * Called right away to initialize preboot
@@ -136,7 +136,7 @@ export function getAppRoot(
   opts: PrebootOptions,
   serverNode: HTMLElement
 ): ServerClientRoot {
-  const root: ServerClientRoot = {serverNode};
+  const root: ServerClientRoot = { serverNode };
 
   // if we are doing buffering, we need to create the buffer for the client
   // else the client root is the same as the server
@@ -157,9 +157,9 @@ export function getAppRoot(
  * @param eventSelector
  */
 export function handleEvents(_document: Document,
-                             prebootData: PrebootData,
-                             appData: PrebootAppData,
-                             eventSelector: EventSelector) {
+  prebootData: PrebootData,
+  appData: PrebootAppData,
+  eventSelector: EventSelector) {
   const serverRoot = appData.root.serverNode;
 
   // don't do anything if no server root
@@ -206,7 +206,7 @@ export function createListenHandler(
   const matches = _document.documentElement.matches ||
     _document.documentElement.msMatchesSelector;
 
-  return function(event: DomEvent) {
+  return function (event: DomEvent) {
     const node: Element = event.target;
 
     // a delegated handlers on document is used so we need to check if
@@ -279,12 +279,16 @@ export function createListenHandler(
     // we will record events for later replay unless explicitly marked as
     // doNotReplay
     if (eventSelector.replay) {
-      appData.events.push({
+      const ev: any = {
         node,
         nodeKey,
         event,
         name: eventName
-      });
+      };
+      if (eventName === 'keydown') {
+        ev.value = (node as HTMLInputElement).value;
+      }
+      appData.events.push(ev);
     }
   };
 }
@@ -311,7 +315,7 @@ export function getSelection(node: HTMLInputElement): PrebootSelection {
       selection.direction = node.selectionDirection ?
         node.selectionDirection as PrebootSelectionDirection : 'none';
     }
-  } catch (ex) {}
+  } catch (ex) { }
 
   return selection;
 }

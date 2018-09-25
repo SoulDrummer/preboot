@@ -13,7 +13,7 @@ import {
   PrebootWindow,
   ServerClientRoot,
 } from '../common/preboot.interfaces';
-import {getNodeKeyForPreboot} from '../common/get-node-key';
+import { getNodeKeyForPreboot } from '../common/get-node-key';
 
 export function _window(): PrebootWindow {
   return {
@@ -136,7 +136,11 @@ export class EventReplayer {
     // now dispatch events and whatnot to the client node
     (clientNode as HTMLInputElement).checked = serverNode.checked;
     (clientNode as HTMLOptionElement).selected = serverNode.selected;
-    (clientNode as HTMLOptionElement).value = serverNode.value;
+    if (prebootEvent.value !== undefined) {
+      (clientNode as HTMLInputElement).value = prebootEvent.value;
+    } else {
+      (clientNode as HTMLOptionElement).value = serverNode.value;
+    }
     clientNode.dispatchEvent(event);
   }
 
@@ -202,8 +206,8 @@ export class EventReplayer {
     if (prebootOverlay) {
       prebootOverlay.remove ?
         prebootOverlay.remove() : prebootOverlay.parentNode !== null ?
-        prebootOverlay.parentNode.removeChild(prebootOverlay) :
-        prebootOverlay.style.display = 'none';
+          prebootOverlay.parentNode.removeChild(prebootOverlay) :
+          prebootOverlay.style.display = 'none';
     }
 
     // clear out the data stored for each app
@@ -240,7 +244,7 @@ export class EventReplayer {
         try {
           (clientNode as HTMLInputElement)
             .setSelectionRange(selection.start, selection.end, selection.direction);
-        } catch (ex) {}
+        } catch (ex) { }
       }
     }
   }

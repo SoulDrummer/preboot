@@ -233,7 +233,12 @@ var EventReplayer = /** @class */ (function () {
         // now dispatch events and whatnot to the client node
         (/** @type {?} */ (clientNode)).checked = serverNode.checked;
         (/** @type {?} */ (clientNode)).selected = serverNode.selected;
-        (/** @type {?} */ (clientNode)).value = serverNode.value;
+        if (prebootEvent.value !== undefined) {
+            (/** @type {?} */ (clientNode)).value = prebootEvent.value;
+        }
+        else {
+            (/** @type {?} */ (clientNode)).value = serverNode.value;
+        }
         clientNode.dispatchEvent(event);
     };
     /**
@@ -695,12 +700,16 @@ function createListenHandler(_document, prebootData, eventSelector, appData) {
         // we will record events for later replay unless explicitly marked as
         // doNotReplay
         if (eventSelector.replay) {
-            appData.events.push({
+            var /** @type {?} */ ev = {
                 node: node,
                 nodeKey: nodeKey,
                 event: event,
                 name: eventName
-            });
+            };
+            if (eventName === 'keydown') {
+                ev.value = (/** @type {?} */ (node)).value;
+            }
+            appData.events.push(ev);
         }
     };
 }

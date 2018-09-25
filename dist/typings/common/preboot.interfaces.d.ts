@@ -32,6 +32,7 @@ export interface PrebootEvent {
     event: DomEvent;
     name: string;
     interval?: number;
+    value?: string;
 }
 export interface DomEvent {
     which?: number;

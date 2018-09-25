@@ -1,8 +1,19 @@
 <html>
-  <head>
-    <title>Preboot Test</title>
-  </head>
-  <body>
-    <app-root></app-root>
-  </body>
+
+<head>
+  <title>Preboot Test</title>
+</head>
+
+<body>
+  <app-root></app-root>
+</body>
+<script>
+  window.loadClientView = function() {
+    const scriptTag = document.createElement('script');
+    scriptTag.type = 'text/javascript';
+    scriptTag.src = 'postrender.js';
+    document.getElementsByTagName('html')[0].appendChild(scriptTag);
+  }
+</script>
+
 </html>
