@@ -66,6 +66,111 @@ const PREBOOT_NONCE = new InjectionToken('PrebootNonce');
  * @suppress {checkTypes} checked by tsc
  */
 /**
+ * @param {?} nodes
+ * @param {?} eq
+ * @return {?}
+ */
+function findNodeByEq(nodes, eq) {
+    let /** @type {?} */ index = eq.pop();
+    let /** @type {?} */ node = nodes.item(/** @type {?} */ ((index)));
+    while (node && index !== undefined) {
+        index = eq.pop();
+        const /** @type {?} */ temp = node.childNodes.item(/** @type {?} */ ((index)));
+        if (temp && temp instanceof HTMLElement
+            || temp instanceof SVGSVGElement
+            || temp instanceof SVGPathElement
+            || temp instanceof SVGGElement) {
+            node = temp;
+        }
+        else {
+            return node;
+        }
+    }
+    return node;
+}
+/**
+ * @param {?} node
+ * @param {?=} nodePath
+ * @return {?}
+ */
+function getNodePath(node, nodePath = {}) {
+    const /** @type {?} */ tagName = node.tagName;
+    nodePath.tagName = tagName;
+    nodePath.eq = nodePath.eq || [];
+    if (node instanceof HTMLElement
+        || node instanceof SVGSVGElement
+        || node instanceof SVGPathElement
+        || node instanceof SVGGElement) {
+        if (node.id) {
+            const /** @type {?} */ nodes = document.querySelectorAll(`${tagName}#${node.id}`);
+            const /** @type {?} */ len = nodes.length;
+            for (let /** @type {?} */ i = 0; i < len; i++) {
+                if (nodes.item(i) === node) {
+                    nodePath.id = node.id;
+                    nodePath.eq.push(i);
+                    break;
+                }
+            }
+        }
+        else if (node.classList.length > 0 && node instanceof HTMLElement) {
+            const /** @type {?} */ classList = Array.from(node.classList);
+            const /** @type {?} */ findResult = findByClassName(tagName, classList, node);
+            nodePath.className = findResult.className || '';
+            nodePath.eq.push(findResult.eq || 0);
+        }
+        else if (node.parentNode
+            && node.parentNode instanceof HTMLElement
+            || node.parentNode instanceof SVGSVGElement
+            || node.parentNode instanceof SVGPathElement
+            || node.parentNode instanceof SVGGElement) {
+            const /** @type {?} */ nodes = node.parentNode.childNodes;
+            const /** @type {?} */ len = nodes.length;
+            for (let /** @type {?} */ i = 0; i < len; i++) {
+                if (nodes.item(i) === node) {
+                    nodePath.eq.push(i);
+                    break;
+                }
+            }
+            getNodePath(node.parentNode, nodePath);
+        }
+    }
+    return nodePath;
+}
+/**
+ * @param {?} tagName
+ * @param {?} classList
+ * @param {?} node
+ * @return {?}
+ */
+function findByClassName(tagName, classList, node) {
+    const /** @type {?} */ classNameRst = /** @type {?} */ ({});
+    if (classList.length > 0) {
+        let /** @type {?} */ className = classList.join('.');
+        const /** @type {?} */ nodes = document.querySelectorAll(`${tagName}.${className}`);
+        if (nodes.length === 1 && classList.length > 1) {
+            classList.pop();
+            className = classList.join('.');
+            return findByClassName(tagName, classList, node);
+        }
+        else {
+            const /** @type {?} */ len = nodes.length;
+            for (let /** @type {?} */ i = 0; i < len; i++) {
+                if (nodes.item(i) === node) {
+                    classNameRst.eq = i;
+                    classNameRst.className = classList.join(' ');
+                    break;
+                }
+            }
+        }
+    }
+    return classNameRst;
+}
+
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+/**
  * @return {?}
  */
 function _window() {
@@ -170,10 +275,12 @@ class EventReplayer {
         const /** @type {?} */ event = /** @type {?} */ (prebootEvent.event);
         const /** @type {?} */ serverNode = prebootEvent.node || {};
         const /** @type {?} */ nodeKey = prebootEvent.nodeKey;
+        const /** @type {?} */ nodePath = prebootEvent.nodePath;
         const /** @type {?} */ clientNode = this.findClientNode({
             root: appData.root,
             node: serverNode,
-            nodeKey: nodeKey
+            nodeKey: nodeKey,
+            nodePath: nodePath,
         });
         // if client node can't be found, log a warning
         if (!clientNode) {
@@ -284,7 +391,7 @@ class EventReplayer {
         }
         // find the client node in the new client view
         const /** @type {?} */ clientNode = this.findClientNode(activeNode);
-        if (clientNode) {
+        if (clientNode && clientNode instanceof HTMLElement) {
             // set focus on the client node
             clientNode.focus();
             // set selection if a modern browser (i.e. IE9+, etc.)
@@ -317,8 +424,9 @@ class EventReplayer {
      */
     findClientNode(serverNodeContext) {
         serverNodeContext = /** @type {?} */ ((serverNodeContext || {}));
-        const /** @type {?} */ serverNode = serverNodeContext.node;
+        // const serverNode = serverNodeContext.node;
         const /** @type {?} */ root = serverNodeContext.root;
+        const /** @type {?} */ nodePath = serverNodeContext.nodePath;
         // if no server or client root, don't do anything
         if (!root || !root.serverNode || !root.clientNode) {
             return null;
@@ -330,48 +438,27 @@ class EventReplayer {
         if (this.clientNodeCache[serverNodeKey]) {
             return /** @type {?} */ (this.clientNodeCache[serverNodeKey]);
         }
-        // get the selector for client nodes
-        const /** @type {?} */ className = (serverNode.className || '').replace('ng-binding', '').trim();
-        let /** @type {?} */ selector = serverNode.tagName;
-        if (serverNode.id) {
-            selector += `#${serverNode.id}`;
-        }
-        else if (className) {
-            selector += `.${className.replace(/ /g, '.')}`;
-        }
-        // select all possible client nodes and look through them to try and find a
-        // match
-        const /** @type {?} */ rootClientNode = root.clientNode;
-        let /** @type {?} */ clientNodes = rootClientNode.querySelectorAll(selector);
-        // if nothing found, then just try the tag name as a final option
-        if (!clientNodes.length) {
-            console.log(`nothing found for ${selector} so using ${serverNode.tagName}`);
-            clientNodes = rootClientNode.querySelectorAll(serverNode.tagName);
-        }
-        const /** @type {?} */ length = clientNodes.length;
-        for (let /** @type {?} */ i = 0; i < length; i++) {
-            const /** @type {?} */ clientNode = clientNodes.item(i);
-            // get the key for the client node
-            const /** @type {?} */ clientNodeKey = getNodeKeyForPreboot({
-                root: root,
-                node: clientNode
-            });
-            // if the client node key is exact match for the server node key, then we
-            // found the client node
-            if (clientNodeKey === serverNodeKey) {
-                this.clientNodeCache[serverNodeKey] = clientNode;
-                return /** @type {?} */ (clientNode);
+        if (root.clientNode instanceof HTMLElement && nodePath) {
+            const /** @type {?} */ tagName = nodePath.tagName || '';
+            const /** @type {?} */ eq = nodePath.eq;
+            let /** @type {?} */ nodes;
+            if (nodePath.id) {
+                nodes = document.body.querySelectorAll(`${tagName}#${nodePath.id}`);
             }
+            else if (nodePath.className) {
+                const /** @type {?} */ className = nodePath.className.split(' ').join('.');
+                nodes = document.body.querySelectorAll(`${tagName}.${className}`);
+            }
+            else {
+                // search by relative path;
+                nodes = document.body.childNodes;
+            }
+            const /** @type {?} */ result = findNodeByEq(nodes, /** @type {?} */ ((eq)));
+            if (result === null) {
+                console.warn(`can\'t find ${serverNodeKey} element`);
+            }
+            return result;
         }
-        // if we get here and there is one clientNode, use it as a fallback
-        if (clientNodes.length === 1) {
-            this.clientNodeCache[serverNodeKey] = clientNodes[0];
-            return /** @type {?} */ (clientNodes[0]);
-        }
-        // if we get here it means we couldn't find the client node so give the user
-        // a warning
-        console.warn(`No matching client node found for ${serverNodeKey}.
-       You can fix this by assigning this element a unique id attribute.`);
         return null;
     }
 }
@@ -570,6 +657,7 @@ function createListenHandler(_document, prebootData, eventSelector, appData) {
         }
         // get the node key for a given node
         const /** @type {?} */ nodeKey = getNodeKeyForPreboot({ root: root, node: node });
+        const /** @type {?} */ nodePath = getNodePath(node);
         // if event on input or text area, record active node
         if (CARET_EVENTS.indexOf(eventName) >= 0 &&
             CARET_NODES.indexOf(node.tagName ? node.tagName : '') >= 0) {
@@ -577,6 +665,7 @@ function createListenHandler(_document, prebootData, eventSelector, appData) {
                 root: root,
                 node: node,
                 nodeKey: nodeKey,
+                nodePath: nodePath,
                 selection: getSelection(/** @type {?} */ (node))
             };
         }
@@ -615,6 +704,7 @@ function createListenHandler(_document, prebootData, eventSelector, appData) {
                 node,
                 nodeKey,
                 event,
+                nodePath,
                 name: eventName
             };
             events.push(pev);

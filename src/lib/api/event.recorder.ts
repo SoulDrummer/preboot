@@ -13,9 +13,10 @@ import {
   DomEvent,
   PrebootWindow,
   ServerClientRoot,
-  PrebootSelection, PrebootSelectionDirection,
+  PrebootSelection, PrebootSelectionDirection, PrebootEvent,
 } from '../common/preboot.interfaces';
 import { getNodeKeyForPreboot } from '../common/get-node-key';
+import { getNodePath } from '../common/get-node-path';
 
 /**
  * Called right away to initialize preboot
@@ -248,6 +249,7 @@ export function createListenHandler(
 
     // get the node key for a given node
     const nodeKey = getNodeKeyForPreboot({ root: root, node: node });
+    const nodePath = getNodePath(node);
 
     // if event on input or text area, record active node
     if (CARET_EVENTS.indexOf(eventName) >= 0 &&
@@ -256,6 +258,7 @@ export function createListenHandler(
         root: root,
         node: node,
         nodeKey: nodeKey,
+        nodePath: nodePath,
         selection: getSelection(node as HTMLInputElement)
       };
     } else if (eventName !== 'change' && eventName !== 'focusout') {
@@ -280,7 +283,7 @@ export function createListenHandler(
     // doNotReplay
     if (eventSelector.replay) {
       const events = appData.events;
-      const getValue = (preEvent) => {
+      const getValue = (preEvent: PrebootEvent) => {
         const ev = preEvent.event;
         if (ev.target instanceof HTMLTextAreaElement || ev.target instanceof HTMLInputElement) {
           preEvent.value = (ev.target as HTMLInputElement).value;
@@ -296,6 +299,7 @@ export function createListenHandler(
         node,
         nodeKey,
         event,
+        nodePath,
         name: eventName
       };
       events.push(pev);

@@ -9,7 +9,7 @@ import { NodeContext, PrebootAppData, PrebootData, PrebootEvent, PrebootWindow }
 export declare function _window(): PrebootWindow;
 export declare class EventReplayer {
     clientNodeCache: {
-        [key: string]: Element;
+        [key: string]: Element | Node;
     };
     replayStarted: boolean;
     win: PrebootWindow;
@@ -67,5 +67,5 @@ export declare class EventReplayer {
      * for situations where the client view is different in structure from the
      * server view
      */
-    findClientNode(serverNodeContext: NodeContext): HTMLElement | null;
+    findClientNode(serverNodeContext: NodeContext): HTMLElement | Node | null;
 }

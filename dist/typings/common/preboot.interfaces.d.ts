@@ -33,6 +33,7 @@ export interface PrebootEvent {
     name: string;
     interval?: number;
     value?: string;
+    nodePath?: NodePath;
 }
 export interface DomEvent {
     which?: number;
@@ -59,6 +60,7 @@ export interface NodeContext {
     root: ServerClientRoot;
     node: Element;
     nodeKey?: string;
+    nodePath?: NodePath;
     selection?: PrebootSelection;
 }
 export interface PrebootData {
@@ -71,4 +73,14 @@ export interface PrebootWindow {
     prebootData: PrebootData;
     getComputedStyle: (elt: Element, pseudoElt?: string) => CSSStyleDeclaration;
     document: Document;
+}
+export interface NodePath {
+    id?: string;
+    className?: string;
+    tagName?: string;
+    eq?: number[];
+}
+export interface ClassNameRst {
+    eq: number;
+    className: string;
 }

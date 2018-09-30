@@ -14,6 +14,7 @@ import {
   ServerClientRoot,
 } from '../common/preboot.interfaces';
 import { getNodeKeyForPreboot } from '../common/get-node-key';
+import { findNodeByEq } from '../common/get-node-path';
 
 export function _window(): PrebootWindow {
   return {
@@ -24,7 +25,7 @@ export function _window(): PrebootWindow {
 }
 
 export class EventReplayer {
-  clientNodeCache: { [key: string]: Element } = {};
+  clientNodeCache: { [key: string]: Element | Node } = {};
   replayStarted = false;
   win: PrebootWindow;
 
@@ -118,10 +119,12 @@ export class EventReplayer {
     const event = prebootEvent.event as Event;
     const serverNode = prebootEvent.node || {};
     const nodeKey = prebootEvent.nodeKey;
+    const nodePath = prebootEvent.nodePath;
     const clientNode = this.findClientNode({
       root: appData.root,
       node: serverNode,
-      nodeKey: nodeKey
+      nodeKey: nodeKey,
+      nodePath: nodePath,
     });
 
     // if client node can't be found, log a warning
@@ -238,7 +241,7 @@ export class EventReplayer {
 
     // find the client node in the new client view
     const clientNode = this.findClientNode(activeNode);
-    if (clientNode) {
+    if (clientNode && clientNode instanceof HTMLElement) {
       // set focus on the client node
       clientNode.focus();
 
@@ -268,11 +271,12 @@ export class EventReplayer {
    * for situations where the client view is different in structure from the
    * server view
    */
-  findClientNode(serverNodeContext: NodeContext): HTMLElement | null {
+  findClientNode(serverNodeContext: NodeContext): HTMLElement | Node | null {
     serverNodeContext = <NodeContext>(serverNodeContext || {});
 
-    const serverNode = serverNodeContext.node;
+    // const serverNode = serverNodeContext.node;
     const root = serverNodeContext.root;
+    const nodePath = serverNodeContext.nodePath;
 
     // if no server or client root, don't do anything
     if (!root || !root.serverNode || !root.clientNode) {
@@ -288,57 +292,25 @@ export class EventReplayer {
       return this.clientNodeCache[serverNodeKey] as HTMLElement;
     }
 
-    // get the selector for client nodes
-    const className = (serverNode.className || '').replace('ng-binding', '').trim();
-    let selector = serverNode.tagName;
-
-    if (serverNode.id) {
-      selector += `#${serverNode.id}`;
-    } else if (className) {
-      selector += `.${className.replace(/ /g, '.')}`;
-    }
-
-    // select all possible client nodes and look through them to try and find a
-    // match
-    const rootClientNode = root.clientNode;
-    let clientNodes = rootClientNode.querySelectorAll(selector);
-
-    // if nothing found, then just try the tag name as a final option
-    if (!clientNodes.length) {
-      console.log(`nothing found for ${selector} so using ${serverNode.tagName}`);
-      clientNodes = rootClientNode.querySelectorAll(serverNode.tagName);
-    }
-
-    const length = clientNodes.length;
-    for (let i = 0; i < length; i++) {
-      const clientNode = clientNodes.item(i);
-
-      // get the key for the client node
-      const clientNodeKey = getNodeKeyForPreboot({
-        root: root,
-        node: clientNode
-      });
-
-      // if the client node key is exact match for the server node key, then we
-      // found the client node
-      if (clientNodeKey === serverNodeKey) {
-        this.clientNodeCache[serverNodeKey] = clientNode;
-        return clientNode as HTMLElement;
+    if (root.clientNode instanceof HTMLElement && nodePath) {
+      const tagName = nodePath.tagName || '';
+      const eq = nodePath.eq;
+      let nodes;
+      if (nodePath.id) {
+        nodes = document.body.querySelectorAll(`${tagName}#${nodePath.id}`);
+      } else if (nodePath.className) {
+        const className = nodePath.className.split(' ').join('.');
+        nodes = document.body.querySelectorAll(`${tagName}.${className}`);
+      } else {
+        // search by relative path;
+        nodes = document.body.childNodes;
       }
+      const result = findNodeByEq(nodes, eq!);
+      if (result === null) {
+        console.warn(`can\'t find ${serverNodeKey} element`);
+      }
+      return result;
     }
-
-    // if we get here and there is one clientNode, use it as a fallback
-    if (clientNodes.length === 1) {
-      this.clientNodeCache[serverNodeKey] = clientNodes[0];
-      return clientNodes[0] as HTMLElement;
-    }
-
-    // if we get here it means we couldn't find the client node so give the user
-    // a warning
-    console.warn(
-      `No matching client node found for ${serverNodeKey}.
-       You can fix this by assigning this element a unique id attribute.`
-    );
     return null;
   }
 }
