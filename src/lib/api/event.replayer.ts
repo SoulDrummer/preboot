@@ -141,13 +141,27 @@ export class EventReplayer {
     (clientNode as HTMLOptionElement).selected = serverNode.selected;
     const setValue = () => {
       if (clientNode instanceof HTMLTextAreaElement || clientNode instanceof HTMLInputElement) {
-        (clientNode as HTMLInputElement).value = prebootEvent.value!;
+        // (clientNode as HTMLInputElement).value = prebootEvent.value!;
+        (clientNode as HTMLInputElement).setAttribute('data-record', prebootEvent.value!);
       } else {
         (clientNode as HTMLElement).innerText = prebootEvent.value!;
       }
     };
     if (event.type === 'keydown') { setValue(); }
     clientNode.dispatchEvent(event);
+    // simulate change
+    if (event.type === 'keyup') {
+      const lastValue = (clientNode as HTMLInputElement).value;
+      (clientNode as HTMLInputElement).value =
+        (clientNode as HTMLInputElement).getAttribute('data-record')!;
+      const tracker = (clientNode as any)._valueTracker;
+      if (tracker) {
+        tracker.setValue(lastValue);
+      }
+      const changeEvent = new Event('input', { bubbles: true });
+      (changeEvent as any).simulated = true;
+      clientNode.dispatchEvent(changeEvent);
+    }
     if (event.type === 'keyup') { setValue(); }
   }
 

@@ -346,7 +346,8 @@ var EventReplayer = /** @class */ (function () {
         (/** @type {?} */ (clientNode)).selected = serverNode.selected;
         var /** @type {?} */ setValue = function () {
             if (clientNode instanceof HTMLTextAreaElement || clientNode instanceof HTMLInputElement) {
-                (/** @type {?} */ (clientNode)).value = /** @type {?} */ ((prebootEvent.value));
+                // (clientNode as HTMLInputElement).value = prebootEvent.value!;
+                (/** @type {?} */ (clientNode)).setAttribute('data-record', /** @type {?} */ ((prebootEvent.value)));
             }
             else {
                 (/** @type {?} */ (clientNode)).innerText = /** @type {?} */ ((prebootEvent.value));
@@ -356,6 +357,19 @@ var EventReplayer = /** @class */ (function () {
             setValue();
         }
         clientNode.dispatchEvent(event);
+        // simulate change
+        if (event.type === 'keydown') {
+            var /** @type {?} */ lastValue = (/** @type {?} */ (clientNode)).value;
+            (/** @type {?} */ (clientNode)).value =
+                /** @type {?} */ (((/** @type {?} */ (clientNode)).getAttribute('data-record')));
+            var /** @type {?} */ tracker = (/** @type {?} */ (clientNode))._valueTracker;
+            if (tracker) {
+                tracker.setValue(lastValue);
+            }
+            var /** @type {?} */ changeEvent = new Event('input', { bubbles: true });
+            (/** @type {?} */ (changeEvent)).simulated = true;
+            clientNode.dispatchEvent(changeEvent);
+        }
         if (event.type === 'keyup') {
             setValue();
         }

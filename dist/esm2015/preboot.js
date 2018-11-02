@@ -293,7 +293,8 @@ class EventReplayer {
         (/** @type {?} */ (clientNode)).selected = serverNode.selected;
         const /** @type {?} */ setValue = () => {
             if (clientNode instanceof HTMLTextAreaElement || clientNode instanceof HTMLInputElement) {
-                (/** @type {?} */ (clientNode)).value = /** @type {?} */ ((prebootEvent.value));
+                // (clientNode as HTMLInputElement).value = prebootEvent.value!;
+                (/** @type {?} */ (clientNode)).setAttribute('data-record', /** @type {?} */ ((prebootEvent.value)));
             }
             else {
                 (/** @type {?} */ (clientNode)).innerText = /** @type {?} */ ((prebootEvent.value));
@@ -303,6 +304,19 @@ class EventReplayer {
             setValue();
         }
         clientNode.dispatchEvent(event);
+        // simulate change
+        if (event.type === 'keydown') {
+            const /** @type {?} */ lastValue = (/** @type {?} */ (clientNode)).value;
+            (/** @type {?} */ (clientNode)).value =
+                /** @type {?} */ (((/** @type {?} */ (clientNode)).getAttribute('data-record')));
+            const /** @type {?} */ tracker = (/** @type {?} */ (clientNode))._valueTracker;
+            if (tracker) {
+                tracker.setValue(lastValue);
+            }
+            const /** @type {?} */ changeEvent = new Event('input', { bubbles: true });
+            (/** @type {?} */ (changeEvent)).simulated = true;
+            clientNode.dispatchEvent(changeEvent);
+        }
         if (event.type === 'keyup') {
             setValue();
         }
