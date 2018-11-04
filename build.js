@@ -11,7 +11,7 @@ const sourcemaps = require('rollup-plugin-sourcemaps');
 const nodeResolve = require('rollup-plugin-node-resolve');
 const commonjs = require('rollup-plugin-commonjs');
 
-const libName = require('./package.json').name;
+const libName = 'preboot';
 const rootFolder = path.join(__dirname);
 const compilationFolder = path.join(rootFolder, 'out-tsc');
 const srcFolder = path.join(rootFolder, 'src/lib');
